@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Xamarin.Forms;
 
 namespace MyCoffeeApp.ViewModels
 {
@@ -16,7 +17,9 @@ namespace MyCoffeeApp.ViewModels
         public ObservableRangeCollection<Coffee> Coffee { get; set; }
         public ObservableRangeCollection<Grouping<string, Coffee>> CoffeeGroups { get; set; }
         public AsyncCommand RefreshCommand { get; }
-        public CoffeeEquipmentViewModel() 
+
+        public AsyncCommand<Coffee> FavoriteCommand { get; }
+        public CoffeeEquipmentViewModel()
         {
             Title = "Coffee Equipment";
 
@@ -35,8 +38,36 @@ namespace MyCoffeeApp.ViewModels
 
             CoffeeGroups.Add(new Grouping<string, Coffee>("Blue Bottle", new[] { Coffee[2] }));
             CoffeeGroups.Add(new Grouping<string, Coffee>("Yes plz", Coffee.Take(2)));
-            
+
             RefreshCommand = new AsyncCommand(Refresh);
+            FavoriteCommand = new AsyncCommand<Coffee>(Favorite);
+        }
+
+        async Task Favorite(Coffee coffee)
+        {
+            if(coffee == null)
+                return;
+
+            await Application.Current.MainPage.DisplayAlert("Favorite", coffee.Name, "OK");
+        }
+
+        Coffee previouslySelected;
+        Coffee selectedCoffee;
+        public Coffee SelectedCoffee
+        {
+            get => selectedCoffee;
+            set
+            {
+                if (value != null)
+                {
+                    Application.Current.MainPage.DisplayAlert("Selected", value.Name, "OK");
+                    previouslySelected = value;
+                    value = null;
+                }
+
+                selectedCoffee = value;
+                OnPropertyChanged();
+            }
         }
 
         async Task Refresh()
